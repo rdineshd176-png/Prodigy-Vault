@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="min-height:80vh;display:flex;flex-direction:column;justify-content:center;padding:8px 0;">
+    <div class="card-elevated" style="padding:28px 22px;border-radius:24px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(200,98,42,.1),transparent 70%);pointer-events:none;"></div>
+
+        <div style="text-align:center;margin-bottom:26px;">
+            <div style="margin:0 auto 14px;width:60px;height:60px;border-radius:18px;background:var(--accent-bg);border:1.5px solid rgba(200,98,42,.25);display:flex;align-items:center;justify-content:center;">
+                <i class="fa-solid fa-piggy-bank" style="font-size:1.5rem;color:var(--accent);"></i>
+            </div>
+            <h1 class="font-display" style="font-size:1.6rem;font-weight:800;color:var(--text);letter-spacing:-.02em;">Welcome to Prodigy Vault</h1>
+            <p style="color:var(--muted);font-size:.85rem;margin-top:6px;">Set your current balances to get started</p>
+        </div>
+
+        <form id="onboardingForm" style="display:flex;flex-direction:column;gap:14px;">
+            <div style="background:var(--bg2);border-radius:13px;padding:14px;border:1px solid var(--border);display:flex;flex-direction:column;gap:12px;">
+                <div>
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+                        <i class="fa-solid fa-building-columns" style="color:var(--sky);font-size:.9rem;"></i>
+                        <div class="label-xs">Canara Bank</div>
+                    </div>
+                    <input type="number" name="canara_balance" step="0.01" min="0" class="input-field" placeholder="0.00" style="background:var(--surface);">
+                </div>
+                <div style="height:1px;background:var(--border);"></div>
+                <div>
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+                        <i class="fa-solid fa-mobile-screen" style="color:var(--violet);font-size:.9rem;"></i>
+                        <div class="label-xs">Airtel Bank</div>
+                    </div>
+                    <input type="number" name="airtel_balance" step="0.01" min="0" class="input-field" placeholder="0.00" style="background:var(--surface);">
+                </div>
+                <div style="height:1px;background:var(--border);"></div>
+                <div>
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+                        <i class="fa-solid fa-money-bill-wave" style="color:var(--emerald);font-size:.9rem;"></i>
+                        <div class="label-xs">Cash</div>
+                    </div>
+                    <input type="number" name="cash_balance" step="0.01" min="0" class="input-field" placeholder="0.00" style="background:var(--surface);">
+                </div>
+                <div style="height:1px;background:var(--border);"></div>
+                <div>
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+                        <i class="fa-solid fa-piggy-bank" style="color:var(--amber);font-size:.9rem;"></i>
+                        <div class="label-xs">Savings Hub</div>
+                    </div>
+                    <input type="number" name="savings_balance" step="0.01" min="0" class="input-field" placeholder="0.00" style="background:var(--surface);">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="ob-btn">
+                <i class="fa-solid fa-rocket"></i> Launch My Vaults
+            </button>
+        </form>
+
+        <p style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:14px;">
+            You can skip and leave at ₹0 — adjust later from your vault.
+        </p>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const btn = document.getElementById('ob-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Setting up...';
+    const data = {
+        accounts: [
+            { name: 'Canara Bank', balance: parseFloat(form.canara_balance.value) || 0 },
+            { name: 'Airtel Bank', balance: parseFloat(form.airtel_balance.value) || 0 },
+            { name: 'Cash', balance: parseFloat(form.cash_balance.value) || 0 },
+            { name: 'Savings Hub', balance: parseFloat(form.savings_balance.value) || 0 }
+        ]
+    };
+    try {
+        const resp = await fetch('/api/accounts/initialize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        if (resp.ok) {
+            showToast('Vaults ready! Redirecting...', 'success');
+            setTimeout(() => { window.location.href = '/dashboard'; }, 900);
+        } else {
+            const err = await resp.json();
+            showToast(err.error || 'Failed to set balances', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-rocket"></i> Launch My Vaults';
+        }
+    } catch {
+        showToast('Network error. Please try again.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-rocket"></i> Launch My Vaults';
+    }
+});
+</script>
+{% endblock %}

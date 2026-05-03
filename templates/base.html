@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prodigy Vault</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #f0ebe3;
+            --bg2: #e6dfd4;
+            --surface: #faf7f4;
+            --surface2: #ffffff;
+            --border: rgba(180,160,140,0.32);
+            --border-strong: rgba(160,140,120,0.55);
+            --text: #1a1410;
+            --text2: #5a4f43;
+            --muted: #9c8f82;
+            --accent: #c8622a;
+            --accent2: #e8834a;
+            --accent-bg: rgba(200,98,42,0.09);
+            --sky: #2d7dd2;
+            --emerald: #1a8a5a;
+            --rose: #c0392b;
+            --amber: #b06818;
+            --violet: #6d28d9;
+            --shadow-sm: 0 1px 6px rgba(26,20,16,0.06), 0 2px 12px rgba(26,20,16,0.04);
+            --shadow: 0 4px 20px rgba(26,20,16,0.09), 0 8px 40px rgba(26,20,16,0.06);
+            --shadow-lg: 0 12px 50px rgba(26,20,16,0.13);
+            --nav-bg: rgba(250,247,244,0.95);
+            --modal-bg: rgba(26,20,16,0.5);
+        }
+        [data-theme="dark"] {
+            --bg: #0d0b09;
+            --bg2: #161210;
+            --surface: #1c1814;
+            --surface2: #231e19;
+            --border: rgba(70,58,46,0.5);
+            --border-strong: rgba(90,75,58,0.7);
+            --text: #f5f0ea;
+            --text2: #c5b5a4;
+            --muted: #7a6a58;
+            --accent: #e8834a;
+            --accent2: #f0a060;
+            --accent-bg: rgba(232,131,74,0.12);
+            --sky: #4da6f5;
+            --emerald: #34d399;
+            --rose: #f87171;
+            --amber: #fbbf24;
+            --violet: #a78bfa;
+            --shadow-sm: 0 2px 10px rgba(0,0,0,0.25);
+            --shadow: 0 8px 32px rgba(0,0,0,0.38);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+            --nav-bg: rgba(13,11,9,0.96);
+            --modal-bg: rgba(0,0,0,0.72);
+        }
+
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+        html{font-size:16px;-webkit-text-size-adjust:100%;}
+        body{
+            font-family:'DM Sans',sans-serif;
+            background:var(--bg);
+            color:var(--text);
+            min-height:100vh;
+            padding-bottom:80px;
+            overflow-x:hidden;
+        }
+        body::before{
+            content:'';
+            position:fixed;
+            inset:0;
+            pointer-events:none;
+            z-index:0;
+            background:
+                radial-gradient(ellipse 70% 55% at 10% 5%, rgba(200,98,42,0.07) 0%,transparent 55%),
+                radial-gradient(ellipse 50% 60% at 90% 95%, rgba(45,125,210,0.06) 0%,transparent 55%),
+                radial-gradient(ellipse 45% 45% at 55% 45%, rgba(200,98,42,0.035) 0%,transparent 50%);
+            animation:bg-breathe 14s ease-in-out infinite alternate;
+        }
+        [data-theme="dark"] body::before{
+            background:
+                radial-gradient(ellipse 70% 55% at 10% 5%,rgba(232,131,74,0.07) 0%,transparent 55%),
+                radial-gradient(ellipse 50% 60% at 90% 95%,rgba(77,166,245,0.055) 0%,transparent 55%);
+        }
+        @keyframes bg-breathe{from{opacity:.65;transform:scale(1)}to{opacity:1;transform:scale(1.06)}}
+
+        .font-display{font-family:'Syne',sans-serif;}
+        .hero-number{font-family:'Syne',sans-serif;font-weight:800;letter-spacing:-0.035em;line-height:1;}
+
+        .card{
+            background:var(--surface);
+            border:1px solid var(--border);
+            box-shadow:var(--shadow-sm);
+            border-radius:20px;
+            position:relative;
+            z-index:1;
+            overflow:hidden;
+            transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s ease;
+        }
+        .card-elevated{
+            background:var(--surface2);
+            border:1px solid var(--border);
+            box-shadow:var(--shadow);
+            border-radius:24px;
+            position:relative;
+            z-index:1;
+        }
+
+        .label-xs{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);}
+
+        .input-field{
+            width:100%;
+            padding:13px 15px;
+            background:var(--bg2);
+            border:1.5px solid var(--border);
+            border-radius:13px;
+            color:var(--text);
+            font-family:'DM Sans',sans-serif;
+            font-size:.9rem;
+            outline:none;
+            transition:border-color .2s,box-shadow .2s,background .2s,transform .15s;
+            -webkit-appearance:none;
+            appearance:none;
+        }
+        .input-field::placeholder{color:var(--muted);}
+        .input-field:focus{
+            border-color:var(--accent);
+            box-shadow:0 0 0 3px rgba(200,98,42,0.13),0 4px 16px rgba(200,98,42,0.07);
+            transform:translateY(-1px);
+            background:var(--surface);
+        }
+        select.input-field{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239c8f82' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer;}
+
+        .btn{
+            display:inline-flex;align-items:center;justify-content:center;gap:8px;
+            font-family:'DM Sans',sans-serif;font-weight:600;
+            border-radius:13px;border:none;cursor:pointer;
+            transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s ease;
+            min-height:48px;padding:12px 20px;width:100%;font-size:.92rem;
+        }
+        .btn:active{transform:scale(.96)!important;}
+        .btn-primary{background:var(--accent);color:white;box-shadow:0 4px 18px rgba(200,98,42,.28);}
+        .btn-primary:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 26px rgba(200,98,42,.38);}
+        .btn-sky{background:var(--sky);color:white;box-shadow:0 4px 18px rgba(45,125,210,.22);}
+        .btn-sky:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(45,125,210,.32);}
+        .btn-emerald{background:var(--emerald);color:white;box-shadow:0 4px 18px rgba(26,138,90,.22);}
+        .btn-emerald:hover{transform:translateY(-2px);}
+        .btn-violet{background:var(--violet);color:white;box-shadow:0 4px 18px rgba(109,40,217,.22);}
+        .btn-violet:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(109,40,217,.32);}
+        .btn-ghost{background:var(--bg2);color:var(--text);border:1.5px solid var(--border);}
+        .btn-ghost:hover{border-color:var(--border-strong);transform:translateY(-1px);}
+
+        .bottom-nav{
+            position:fixed;bottom:0;left:0;right:0;z-index:50;
+            background:var(--nav-bg);
+            border-top:1px solid var(--border);
+            backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+            box-shadow:0 -4px 24px rgba(26,20,16,.07);
+            padding-bottom:env(safe-area-inset-bottom,0);
+        }
+        [data-theme="dark"] .bottom-nav{box-shadow:0 -4px 24px rgba(0,0,0,.3);}
+        .nav-inner{display:flex;align-items:center;height:62px;max-width:500px;margin:0 auto;padding:0 6px;}
+        .nav-item{
+            flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+            padding:7px 4px;border-radius:11px;cursor:pointer;
+            color:var(--muted);font-size:.58rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+            text-decoration:none;background:transparent;border:none;
+            transition:color .2s,background .2s,transform .2s cubic-bezier(.34,1.56,.64,1);
+            -webkit-tap-highlight-color:transparent;position:relative;
+        }
+        .nav-item:hover{color:var(--accent);}
+        .nav-item.active{color:var(--accent);}
+        .nav-item.active::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent);}
+        .nav-item i{font-size:1.15rem;transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+        .nav-item:active{transform:scale(.88);}
+        .nav-item:active i{transform:scale(1.2);}
+
+        .nav-add{
+            flex:1.3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+            cursor:pointer;border:none;background:transparent;-webkit-tap-highlight-color:transparent;padding:4px;
+        }
+        .nav-add-circle{
+            width:42px;height:42px;border-radius:50%;
+            background:var(--accent);
+            display:flex;align-items:center;justify-content:center;
+            color:white;font-size:1rem;
+            box-shadow:0 4px 14px rgba(200,98,42,.35);
+            transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;
+        }
+        .nav-add:hover .nav-add-circle{transform:scale(1.1);box-shadow:0 6px 20px rgba(200,98,42,.45);}
+        .nav-add:active .nav-add-circle{transform:scale(.9);}
+        .nav-add-label{font-size:.58rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);}
+
+        .sheet-overlay{
+            position:fixed;inset:0;z-index:60;
+            background:var(--modal-bg);
+            display:flex;align-items:flex-end;justify-content:center;
+            opacity:0;pointer-events:none;
+            transition:opacity .28s ease;
+        }
+        .sheet-overlay.active{opacity:1;pointer-events:auto;}
+        .sheet-panel{
+            background:var(--surface2);
+            border-radius:24px 24px 0 0;
+            padding:20px 18px;
+            width:100%;max-width:500px;
+            max-height:90vh;overflow-y:auto;
+            border-top:1px solid var(--border);
+            box-shadow:0 -16px 50px rgba(26,20,16,.14);
+            transform:translateY(100%);
+            transition:transform .35s cubic-bezier(.16,1,.3,1);
+            padding-bottom:calc(20px + env(safe-area-inset-bottom,0));
+        }
+        [data-theme="dark"] .sheet-panel{box-shadow:0 -16px 50px rgba(0,0,0,.5);}
+        .sheet-overlay.active .sheet-panel{transform:translateY(0);}
+        .sheet-handle{width:34px;height:4px;border-radius:2px;background:var(--border-strong);margin:0 auto 18px;}
+
+        #toast-container{
+            position:fixed;top:14px;left:50%;transform:translateX(-50%);
+            z-index:99;display:flex;flex-direction:column;gap:8px;
+            width:calc(100% - 28px);max-width:420px;pointer-events:none;
+        }
+        .toast-item{
+            pointer-events:auto;padding:11px 15px;border-radius:13px;
+            font-size:.875rem;font-weight:500;
+            display:flex;align-items:center;justify-content:space-between;gap:10px;
+            color:white;box-shadow:var(--shadow);
+            opacity:0;transform:translateY(-10px) scale(.97);
+            transition:opacity .3s,transform .32s cubic-bezier(.34,1.56,.64,1);
+        }
+        .toast-item.show{opacity:1;transform:translateY(0) scale(1);}
+        .toast-item.success{background:var(--emerald);}
+        .toast-item.error{background:var(--rose);}
+        .toast-item.info{background:var(--sky);}
+        .toast-close{background:none;border:none;color:rgba(255,255,255,.85);cursor:pointer;font-size:1rem;padding:0;line-height:1;flex-shrink:0;}
+
+        .flash-stack{
+            position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:80;
+            width:calc(100%-28px);max-width:420px;
+            display:flex;flex-direction:column;gap:8px;
+        }
+        .flash-item{
+            padding:11px 15px;border-radius:13px;font-size:.875rem;font-weight:500;
+            display:flex;align-items:center;justify-content:space-between;
+            color:white;box-shadow:var(--shadow);
+            animation:flash-in .32s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes flash-in{from{opacity:0;transform:translateY(-10px) scale(.96)}to{opacity:1;transform:none}}
+        .flash-success{background:var(--emerald);}
+        .flash-danger{background:var(--rose);}
+        .flash-warning{background:var(--amber);}
+        .flash-info{background:var(--sky);}
+
+        .page-enter{animation:page-in .5s cubic-bezier(.16,1,.3,1) both;}
+        @keyframes page-in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+        .stagger>*{animation:stagger-in .48s cubic-bezier(.16,1,.3,1) both;}
+        .stagger>*:nth-child(1){animation-delay:0ms}
+        .stagger>*:nth-child(2){animation-delay:55ms}
+        .stagger>*:nth-child(3){animation-delay:110ms}
+        .stagger>*:nth-child(4){animation-delay:165ms}
+        .stagger>*:nth-child(5){animation-delay:220ms}
+        .stagger>*:nth-child(6){animation-delay:275ms}
+        @keyframes stagger-in{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+
+        .vault-sky{border-top:3px solid var(--sky);}
+        .vault-violet{border-top:3px solid var(--violet);}
+        .vault-emerald{border-top:3px solid var(--emerald);}
+        .vault-amber{border-top:3px solid var(--amber);}
+
+        .pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);animation:pulse 2s ease infinite;}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.82)}}
+
+        ::-webkit-scrollbar{width:3px;}
+        ::-webkit-scrollbar-track{background:transparent;}
+        ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:2px;}
+
+        .main-content{position:relative;z-index:1;max-width:500px;margin:0 auto;padding:18px 14px;}
+
+        body.sheet-open{overflow:hidden;}
+
+        @media(prefers-reduced-motion:reduce){
+            *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.05ms!important;}
+        }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack" id="flash-stack">
+            {% for category, message in messages %}
+            <div class="flash-item flash-{{ category }}">
+                <span>{{ message }}</span>
+                <button onclick="this.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,.9);cursor:pointer;font-size:1.1rem;padding:0;line-height:1;">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <div id="toast-container"></div>
+
+    <main class="main-content page-enter">
+        {% block content %}{% endblock %}
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/dashboard" class="nav-item {% if request.path == '/dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-vault"></i>
+                <span>Vault</span>
+            </a>
+            <button class="nav-add" id="open-add" type="button" aria-label="Add transaction">
+                <div class="nav-add-circle"><i class="fa-solid fa-plus"></i></div>
+                <span class="nav-add-label">Add</span>
+            </button>
+            <button class="nav-item" id="open-transfer" type="button" aria-label="Transfer">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                <span>Move</span>
+            </button>
+            <a href="/statement" class="nav-item {% if request.path == '/statement' %}active{% endif %}">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>History</span>
+            </a>
+            <button class="nav-item" id="theme-btn" type="button" aria-label="Toggle theme">
+                <i class="fa-solid fa-sun" id="theme-icon"></i>
+                <span>Theme</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Add Transaction Sheet -->
+    <div class="sheet-overlay" id="addModal" onclick="closeSheet('addModal')">
+        <div class="sheet-panel" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                <h2 class="font-display" style="font-size:1.2rem;font-weight:700;color:var(--text);">New Transaction</h2>
+                <button onclick="closeSheet('addModal')" style="background:var(--bg2);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.9rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="addForm" style="display:flex;flex-direction:column;gap:13px;">
+                <div>
+                    <div class="label-xs" style="margin-bottom:7px;">Type</div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <div class="type-btn-wrap" onclick="selectType('income')">
+                            <input type="radio" name="type" value="income" id="type-income" style="display:none;">
+                            <div id="type-btn-income" style="border:1.5px solid var(--border);border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .2s;user-select:none;">
+                                <i class="fa-solid fa-circle-plus" style="color:var(--emerald);font-size:1.05rem;"></i>
+                                <div style="font-size:.8rem;font-weight:600;margin-top:4px;color:var(--text);">Income</div>
+                            </div>
+                        </div>
+                        <div class="type-btn-wrap" onclick="selectType('expense')">
+                            <input type="radio" name="type" value="expense" id="type-expense" style="display:none;" checked>
+                            <div id="type-btn-expense" style="border:1.5px solid var(--accent);border-radius:12px;padding:10px 8px;text-align:center;background:var(--accent-bg);cursor:pointer;transition:all .2s;user-select:none;">
+                                <i class="fa-solid fa-circle-minus" style="color:var(--rose);font-size:1.05rem;"></i>
+                                <div style="font-size:.8rem;font-weight:600;margin-top:4px;color:var(--text);">Expense</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="label-xs" style="margin-bottom:7px;">Vault</div>
+                    <select id="txAccount" name="account_id" class="input-field" required></select>
+                </div>
+                <div>
+                    <div class="label-xs" style="margin-bottom:7px;">Amount (₹)</div>
+                    <input type="number" name="amount" step="0.01" min="0.01" required class="input-field" placeholder="0.00" style="font-size:1.15rem;font-weight:600;font-family:'Syne',sans-serif;">
+                </div>
+                <div>
+                    <div class="label-xs" style="margin-bottom:7px;">Description</div>
+                    <input type="text" name="description" placeholder="e.g. Groceries, Salary..." class="input-field">
+                </div>
+                <button type="submit" class="btn btn-primary" id="addSubmitBtn">
+                    <i class="fa-solid fa-check"></i> Record Transaction
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Transfer Sheet -->
+    <div class="sheet-overlay" id="transferModal" onclick="closeSheet('transferModal')">
+        <div class="sheet-panel" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                <h2 class="font-display" style="font-size:1.2rem;font-weight:700;color:var(--text);">Move Funds</h2>
+                <button onclick="closeSheet('transferModal')" style="background:var(--bg2);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.9rem;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="transferForm" style="display:flex;flex-direction:column;gap:13px;">
+                <div>
+                    <div class="label-xs" style="margin-bottom:7px;">From Vault</div>
+                    <select id="transferFrom" name="from_account_id" class="input-field" required></select>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;margin:-3px 0;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.75rem;">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="label-xs" style="margin-bottom:7px;">To Vault</div>
+                    <select id="transferTo" name="to_account_id" class="input-field" required></select>
+                </div>
+                <div>
+                    <div class="label-xs" style="margin-bottom:7px;">Amount (₹)</div>
+                    <input type="number" name="amount" step="0.01" min="0.01" required class="input-field" placeholder="0.00" style="font-size:1.15rem;font-weight:600;font-family:'Syne',sans-serif;">
+                </div>
+                <div>
+                    <div class="label-xs" style="margin-bottom:7px;">Note</div>
+                    <input type="text" name="description" placeholder="e.g. Moving to savings..." class="input-field">
+                </div>
+                <button type="submit" class="btn btn-violet" id="transferSubmitBtn">
+                    <i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer Now
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // ---- Theme ----
+    const html = document.documentElement;
+    const themeIcon = document.getElementById('theme-icon');
+    function applyTheme(t) {
+        html.setAttribute('data-theme', t);
+        if (themeIcon) themeIcon.className = t === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+        localStorage.setItem('pv-theme', t);
+        if (window.monthlyChart) {
+            const isDark = t === 'dark';
+            window.monthlyChart.options.plugins.legend.labels.color = isDark ? '#c5b5a4' : '#5a4f43';
+            window.monthlyChart.data.datasets[0].borderColor = isDark ? '#1c1814' : '#faf7f4';
+            window.monthlyChart.update();
+        }
+    }
+    applyTheme(localStorage.getItem('pv-theme') || 'light');
+    document.getElementById('theme-btn')?.addEventListener('click', () => {
+        applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    // ---- Toast ----
+    function showToast(msg, type = 'info') {
+        const c = document.getElementById('toast-container');
+        const el = document.createElement('div');
+        el.className = `toast-item ${type}`;
+        el.innerHTML = `<span>${msg}</span><button class="toast-close" onclick="this.parentElement.remove()">&times;</button>`;
+        c.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
+        setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 5000);
+    }
+
+    // ---- Sheets ----
+    function openSheet(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.add('active');
+        document.body.classList.add('sheet-open');
+    }
+    function closeSheet(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('active');
+        document.body.classList.remove('sheet-open');
+    }
+    // Legacy aliases
+    const openModal = openSheet;
+    const closeModal = closeSheet;
+
+    document.getElementById('open-add')?.addEventListener('click', () => openSheet('addModal'));
+    document.getElementById('open-transfer')?.addEventListener('click', () => openSheet('transferModal'));
+
+    // ---- Type selector for add form ----
+    function selectType(val) {
+        ['income','expense'].forEach(v => {
+            const btn = document.getElementById(`type-btn-${v}`);
+            if (!btn) return;
+            if (v === val) {
+                btn.style.border = '1.5px solid var(--accent)';
+                btn.style.background = 'var(--accent-bg)';
+            } else {
+                btn.style.border = '1.5px solid var(--border)';
+                btn.style.background = 'transparent';
+            }
+        });
+        const radio = document.querySelector(`input[name="type"][value="${val}"]`);
+        if (radio) radio.checked = true;
+    }
+    selectType('expense');
+
+    // ---- Flash auto-hide ----
+    setTimeout(() => {
+        document.querySelectorAll('.flash-item').forEach(el => {
+            el.style.transition = 'opacity .28s ease,transform .28s ease';
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(-8px)';
+            setTimeout(() => el.remove(), 280);
+        });
+    }, 3500);
+
+    // ---- Add form submit (global, pages can override) ----
+    document.getElementById('addForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('addSubmitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Recording...';
+        const payload = {
+            account_id: parseInt(form.account_id.value),
+            type: form.querySelector('input[name="type"]:checked')?.value || 'expense',
+            amount: parseFloat(form.amount.value),
+            description: form.description.value
+        };
+        try {
+            const resp = await fetch('/api/add_transaction', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const result = await resp.json();
+            if (!resp.ok) {
+                showToast(result.error || 'Transaction failed', 'error');
+            } else {
+                showToast('Transaction recorded ✓', 'success');
+                closeSheet('addModal');
+                form.reset();
+                selectType('expense');
+                if (result.pay_yourself_eligible && result.suggested_amount > 0) {
+                    const savingsAcc = (window.accounts || []).find(a => a.name === 'Savings Hub');
+                    if (savingsAcc && savingsAcc.id !== payload.account_id) {
+                        setTimeout(() => {
+                            if (confirm(`💡 Move 10% (₹${result.suggested_amount.toFixed(2)}) to Savings Hub?`)) {
+                                fetch('/api/transfer', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({
+                                        from_account_id: payload.account_id,
+                                        to_account_id: savingsAcc.id,
+                                        amount: result.suggested_amount,
+                                        description: 'Pay yourself first'
+                                    })
+                                }).then(r => r.json()).then(r => {
+                                    if (r.success) { showToast('10% moved to Savings Hub ✓', 'success'); if (window.loadDashboard) loadDashboard(); }
+                                    else showToast(r.error || 'Transfer failed', 'error');
+                                });
+                            }
+                        }, 300);
+                    }
+                }
+                if (window.loadDashboard) loadDashboard();
+            }
+        } catch { showToast('Network error', 'error'); }
+        finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Record Transaction';
+        }
+    });
+
+    // ---- Transfer form submit (global) ----
+    document.getElementById('transferForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('transferSubmitBtn');
+        const from = parseInt(form.from_account_id.value);
+        const to = parseInt(form.to_account_id.value);
+        if (from === to) { showToast('Source and destination must differ', 'error'); return; }
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Transferring...';
+        const payload = {
+            from_account_id: from, to_account_id: to,
+            amount: parseFloat(form.amount.value),
+            description: form.description.value || 'Transfer'
+        };
+        try {
+            const resp = await fetch('/api/transfer', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const result = await resp.json();
+            if (!resp.ok) { showToast(result.error || 'Transfer failed', 'error'); }
+            else {
+                showToast('Transfer successful ✓', 'success');
+                closeSheet('transferModal');
+                form.reset();
+                if (window.loadDashboard) loadDashboard();
+            }
+        } catch { showToast('Network error', 'error'); }
+        finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer Now';
+        }
+    });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

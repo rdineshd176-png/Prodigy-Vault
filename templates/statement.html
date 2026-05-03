@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stagger" style="display:flex;flex-direction:column;gap:14px;">
+
+    <!-- Header -->
+    <div>
+        <h1 class="font-display" style="font-size:1.7rem;font-weight:800;color:var(--text);letter-spacing:-.02em;">History</h1>
+        <p style="color:var(--muted);font-size:.82rem;margin-top:3px;">All your vault movements</p>
+    </div>
+
+    <!-- Filter pills -->
+    <div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;">
+        <style>.filter-pills::-webkit-scrollbar{display:none}</style>
+        <button onclick="filterTx('all')" class="filter-pill active" data-filter="all" style="white-space:nowrap;padding:7px 14px;border-radius:20px;font-size:.78rem;font-weight:600;border:1.5px solid var(--border);cursor:pointer;transition:all .2s;background:var(--accent);color:white;border-color:var(--accent);">All</button>
+        <button onclick="filterTx('income')" class="filter-pill" data-filter="income" style="white-space:nowrap;padding:7px 14px;border-radius:20px;font-size:.78rem;font-weight:600;border:1.5px solid var(--border);cursor:pointer;transition:all .2s;background:var(--surface);color:var(--text2);">Income</button>
+        <button onclick="filterTx('expense')" class="filter-pill" data-filter="expense" style="white-space:nowrap;padding:7px 14px;border-radius:20px;font-size:.78rem;font-weight:600;border:1.5px solid var(--border);cursor:pointer;transition:all .2s;background:var(--surface);color:var(--text2);">Expenses</button>
+        <button onclick="filterTx('transfer')" class="filter-pill" data-filter="transfer" style="white-space:nowrap;padding:7px 14px;border-radius:20px;font-size:.78rem;font-weight:600;border:1.5px solid var(--border);cursor:pointer;transition:all .2s;background:var(--surface);color:var(--text2);">Transfers</button>
+    </div>
+
+    <!-- Summary bar -->
+    <div id="summary-bar" class="card" style="padding:12px 14px;display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="text-align:center;">
+                <div class="label-xs">Total In</div>
+                <div id="sum-in" style="font-weight:700;color:var(--emerald);font-size:.95rem;margin-top:2px;">₹0.00</div>
+            </div>
+            <div style="width:1px;height:28px;background:var(--border);"></div>
+            <div style="text-align:center;">
+                <div class="label-xs">Total Out</div>
+                <div id="sum-out" style="font-weight:700;color:var(--rose);font-size:.95rem;margin-top:2px;">₹0.00</div>
+            </div>
+            <div style="width:1px;height:28px;background:var(--border);"></div>
+            <div style="text-align:center;">
+                <div class="label-xs">Net</div>
+                <div id="sum-net" style="font-weight:700;font-size:.95rem;margin-top:2px;">₹0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction list -->
+    <div id="tx-list" style="display:flex;flex-direction:column;gap:8px;">
+        <div style="text-align:center;padding:32px 0;color:var(--muted);">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size:1.3rem;margin-bottom:8px;display:block;"></i>
+            Loading transactions...
+        </div>
+    </div>
+
+    <!-- Load more -->
+    <div id="load-more-container" style="display:none;text-align:center;padding-bottom:8px;">
+        <button id="load-more-btn" class="btn btn-ghost" style="width:auto;padding:10px 28px;font-size:.85rem;">
+            Load More
+        </button>
+    </div>
+
+    <div id="empty-state" style="display:none;text-align:center;padding:36px 0;color:var(--muted);">
+        <i class="fa-solid fa-inbox" style="font-size:2rem;margin-bottom:10px;display:block;opacity:.4;"></i>
+        <div style="font-weight:600;font-size:.9rem;">No transactions found</div>
+        <div style="font-size:.8rem;margin-top:4px;">Try a different filter</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentFilter = 'all';
+let currentPage = 1;
+let hasMore = false;
+let allTxns = [];
+
+function filterTx(type) {
+    currentFilter = type;
+    currentPage = 1;
+    document.querySelectorAll('.filter-pill').forEach(btn => {
+        if (btn.dataset.filter === type) {
+            btn.style.background = 'var(--accent)';
+            btn.style.color = 'white';
+            btn.style.borderColor = 'var(--accent)';
+        } else {
+            btn.style.background = 'var(--surface)';
+            btn.style.color = 'var(--text2)';
+            btn.style.borderColor = 'var(--border)';
+        }
+    });
+    loadTransactions();
+}
+
+async function loadTransactions(page = 1, append = false) {
+    const listEl = document.getElementById('tx-list');
+    const emptyEl = document.getElementById('empty-state');
+    if (!append) {
+        listEl.innerHTML = `<div style="text-align:center;padding:28px 0;color:var(--muted);">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size:1.1rem;margin-bottom:8px;display:block;"></i>
+            Loading...
+        </div>`;
+        emptyEl.style.display = 'none';
+        document.getElementById('summary-bar').style.display = 'none';
+    }
+
+    let url = `/api/transactions?page=${page}&per_page=20`;
+    if (currentFilter !== 'all') url += `&type=${currentFilter}`;
+
+    try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+        const txns = data.transactions;
+        hasMore = data.has_next;
+        currentPage = data.page;
+
+        if (!append) allTxns = txns;
+        else allTxns = [...allTxns, ...txns];
+
+        if (!txns.length && !append) {
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'block';
+        } else {
+            const html = txns.map(t => renderTx(t)).join('');
+            if (append) listEl.innerHTML += html;
+            else listEl.innerHTML = html;
+            updateSummary();
+        }
+
+        document.getElementById('load-more-container').style.display = hasMore ? 'block' : 'none';
+    } catch (err) {
+        listEl.innerHTML = `<div style="text-align:center;padding:28px;color:var(--rose);">Failed to load transactions</div>`;
+    }
+}
+
+function renderTx(t) {
+    let color = 'var(--rose)', icon = 'fa-circle-minus', sign = '-', bgAlpha = '1a';
+    if (t.type === 'income') { color = 'var(--emerald)'; icon = 'fa-circle-plus'; sign = '+'; bgAlpha = '18'; }
+    else if (t.type === 'transfer_in') { color = 'var(--sky)'; icon = 'fa-arrow-right-arrow-left'; sign = '+'; bgAlpha = '18'; }
+    else if (t.type === 'transfer_out') { color = 'var(--muted)'; icon = 'fa-arrow-right-arrow-left'; sign = '-'; bgAlpha = '14'; }
+
+    const date = new Date(t.date);
+    const dateStr = date.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'});
+    const timeStr = date.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+
+    return `<div class="card" style="padding:12px 13px;display:flex;align-items:center;gap:10px;animation:stagger-in .35s cubic-bezier(.16,1,.3,1) both;">
+        <div style="width:38px;height:38px;border-radius:11px;background:${color}20;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid ${color}22;">
+            <i class="fa-solid ${icon}" style="color:${color};font-size:.9rem;"></i>
+        </div>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:.88rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.description || t.type.replace('_',' ')}</div>
+            <div style="font-size:.7rem;color:var(--muted);margin-top:2px;">${t.account_name}${t.related_account_name ? ' → '+t.related_account_name : ''}</div>
+            <div style="font-size:.68rem;color:var(--muted);">${dateStr} · ${timeStr}</div>
+        </div>
+        <div style="font-weight:700;font-family:'Syne',sans-serif;color:${color};font-size:.92rem;flex-shrink:0;">${sign}₹${t.amount.toFixed(2)}</div>
+    </div>`;
+}
+
+function updateSummary() {
+    if (!allTxns.length) return;
+    const bar = document.getElementById('summary-bar');
+    bar.style.display = 'block';
+    let totalIn = 0, totalOut = 0;
+    allTxns.forEach(t => {
+        if (t.type === 'income' || t.type === 'transfer_in') totalIn += t.amount;
+        else totalOut += t.amount;
+    });
+    document.getElementById('sum-in').textContent = `₹${totalIn.toFixed(2)}`;
+    document.getElementById('sum-out').textContent = `₹${totalOut.toFixed(2)}`;
+    const net = totalIn - totalOut;
+    const netEl = document.getElementById('sum-net');
+    netEl.textContent = `${net >= 0 ? '+' : ''}₹${net.toFixed(2)}`;
+    netEl.style.color = net >= 0 ? 'var(--emerald)' : 'var(--rose)';
+}
+
+document.getElementById('load-more-btn').addEventListener('click', () => {
+    loadTransactions(currentPage + 1, true);
+});
+
+loadTransactions();
+</script>
+{% endblock %}

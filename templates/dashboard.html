@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="stagger" style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;">
+        <div>
+            <div class="label-xs">Total Net Worth</div>
+            <div id="net-worth" class="hero-number" style="font-size:2.6rem;color:var(--text);margin-top:4px;transition:all .5s;">₹0.00</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+            <div class="pulse-dot"></div>
+            <span style="font-size:.72rem;color:var(--muted);font-weight:500;">Live</span>
+        </div>
+    </div>
+
+    <!-- Weekly stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="card" style="padding:14px 13px;">
+            <div class="label-xs" style="margin-bottom:6px;">Spent This Week</div>
+            <div id="spent-week" class="hero-number" style="font-size:1.5rem;color:var(--rose);">₹0.00</div>
+            <div style="margin-top:6px;display:flex;align-items:center;gap:4px;">
+                <i class="fa-solid fa-arrow-trend-up" style="color:var(--rose);font-size:.7rem;"></i>
+                <span style="font-size:.7rem;color:var(--muted);">Expenses</span>
+            </div>
+        </div>
+        <div class="card" style="padding:14px 13px;">
+            <div class="label-xs" style="margin-bottom:6px;">Saved This Week</div>
+            <div id="saved-week" class="hero-number" style="font-size:1.5rem;color:var(--emerald);">₹0.00</div>
+            <div style="margin-top:6px;display:flex;align-items:center;gap:4px;">
+                <i class="fa-solid fa-piggy-bank" style="color:var(--emerald);font-size:.7rem;"></i>
+                <span style="font-size:.7rem;color:var(--muted);">Net saved</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly chart -->
+    <div class="card" style="padding:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div class="label-xs">This Month's Flow</div>
+            <div id="chart-totals" style="font-size:.72rem;color:var(--muted);"></div>
+        </div>
+        <div style="height:170px;position:relative;">
+            <canvas id="flowChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Vault Cards -->
+    <div>
+        <div class="label-xs" style="margin-bottom:10px;padding:0 2px;">Your Vaults</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div id="vault-canara" class="card vault-sky" style="padding:14px 13px;cursor:pointer;" onclick="quickTransfer('canara')">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <i class="fa-solid fa-building-columns" style="color:var(--sky);font-size:.9rem;"></i>
+                    <span style="font-size:.6rem;padding:2px 7px;border-radius:20px;background:rgba(45,125,210,.12);color:var(--sky);font-weight:600;">BANK</span>
+                </div>
+                <div class="label-xs" style="margin-bottom:4px;">Canara Bank</div>
+                <div class="vault-balance hero-number" style="font-size:1.25rem;color:var(--text);">₹0.00</div>
+                <div style="font-size:.65rem;color:var(--muted);margin-top:3px;">Main Vault</div>
+            </div>
+            <div id="vault-airtel" class="card vault-violet" style="padding:14px 13px;cursor:pointer;" onclick="quickTransfer('airtel')">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <i class="fa-solid fa-mobile-screen" style="color:var(--violet);font-size:.9rem;"></i>
+                    <span style="font-size:.6rem;padding:2px 7px;border-radius:20px;background:rgba(109,40,217,.1);color:var(--violet);font-weight:600;">WALLET</span>
+                </div>
+                <div class="label-xs" style="margin-bottom:4px;">Airtel Bank</div>
+                <div class="vault-balance hero-number" style="font-size:1.25rem;color:var(--text);">₹0.00</div>
+                <div style="font-size:.65rem;color:var(--muted);margin-top:3px;">Daily Ops</div>
+            </div>
+            <div id="vault-cash" class="card vault-emerald" style="padding:14px 13px;cursor:pointer;" onclick="quickTransfer('cash')">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <i class="fa-solid fa-money-bill-wave" style="color:var(--emerald);font-size:.9rem;"></i>
+                    <span style="font-size:.6rem;padding:2px 7px;border-radius:20px;background:rgba(26,138,90,.1);color:var(--emerald);font-weight:600;">CASH</span>
+                </div>
+                <div class="label-xs" style="margin-bottom:4px;">Cash</div>
+                <div class="vault-balance hero-number" style="font-size:1.25rem;color:var(--text);">₹0.00</div>
+                <div style="font-size:.65rem;color:var(--muted);margin-top:3px;">Pocket Money</div>
+            </div>
+            <div id="vault-savings" class="card vault-amber" style="padding:14px 13px;cursor:pointer;" onclick="quickTransfer('savings')">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <i class="fa-solid fa-piggy-bank" style="color:var(--amber);font-size:.9rem;"></i>
+                    <span style="font-size:.6rem;padding:2px 7px;border-radius:20px;background:rgba(176,104,24,.1);color:var(--amber);font-weight:600;">SAVINGS</span>
+                </div>
+                <div class="label-xs" style="margin-bottom:4px;">Savings Hub</div>
+                <div class="vault-balance hero-number" style="font-size:1.25rem;color:var(--text);">₹0.00</div>
+                <div style="font-size:.65rem;color:var(--muted);margin-top:3px;">Locked Wealth</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card" style="padding:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div class="label-xs">Recent Activity</div>
+            <a href="/statement" style="font-size:.72rem;color:var(--accent);text-decoration:none;font-weight:600;">See all →</a>
+        </div>
+        <div id="recent-tx" style="display:flex;flex-direction:column;gap:10px;">
+            <div style="text-align:center;padding:20px 0;color:var(--muted);font-size:.85rem;">
+                <i class="fa-solid fa-circle-notch fa-spin" style="margin-bottom:6px;display:block;font-size:1.1rem;"></i>
+                Loading...
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let accounts = [];
+window.accounts = accounts;
+let monthlyChart = null;
+window.monthlyChart = null;
+
+const vaultMap = {
+    'Canara Bank': 'vault-canara',
+    'Airtel Bank': 'vault-airtel',
+    'Cash': 'vault-cash',
+    'Savings Hub': 'vault-savings'
+};
+
+async function loadDashboard() {
+    try {
+        const resp = await fetch('/api/dashboard');
+        if (!resp.ok) throw new Error('API error');
+        const data = await resp.json();
+        accounts = data.accounts;
+        window.accounts = accounts;
+        animateNetWorth(data.accounts.reduce((s, a) => s + a.balance, 0));
+        document.getElementById('spent-week').textContent = `₹${data.weekly_expense.toFixed(2)}`;
+        document.getElementById('saved-week').textContent = `₹${data.weekly_saved.toFixed(2)}`;
+        // Update saved color based on value
+        const savedEl = document.getElementById('saved-week');
+        savedEl.style.color = data.weekly_saved >= 0 ? 'var(--emerald)' : 'var(--rose)';
+        renderVaultCards(data.accounts);
+        renderRecentTransactions(data.recent_transactions);
+        updateAccountSelects(data.accounts);
+        fetchMonthlyChart();
+    } catch (err) {
+        showToast('Failed to load dashboard', 'error');
+        console.error(err);
+    }
+}
+window.loadDashboard = loadDashboard;
+
+function animateNetWorth(target) {
+    const el = document.getElementById('net-worth');
+    const current = parseFloat(el.textContent.replace(/[₹,]/g,'')) || 0;
+    const diff = target - current;
+    const steps = 30;
+    let i = 0;
+    const interval = setInterval(() => {
+        i++;
+        const val = current + diff * (i / steps);
+        el.textContent = `₹${val.toFixed(2)}`;
+        if (i >= steps) { clearInterval(interval); el.textContent = `₹${target.toFixed(2)}`; }
+    }, 16);
+}
+
+function renderVaultCards(accs) {
+    accs.forEach(a => {
+        const cardId = vaultMap[a.name];
+        if (!cardId) return;
+        const el = document.getElementById(cardId);
+        if (!el) return;
+        const balEl = el.querySelector('.vault-balance');
+        if (balEl) balEl.textContent = `₹${a.balance.toFixed(2)}`;
+    });
+}
+
+function renderRecentTransactions(txns) {
+    const container = document.getElementById('recent-tx');
+    if (!txns || !txns.length) {
+        container.innerHTML = '<p style="text-align:center;padding:16px 0;color:var(--muted);font-size:.85rem;">No recent activity yet</p>';
+        return;
+    }
+    container.innerHTML = txns.map(t => {
+        let color = 'var(--rose)', icon = 'fa-circle-minus', sign = '-';
+        if (t.type === 'income') { color = 'var(--emerald)'; icon = 'fa-circle-plus'; sign = '+'; }
+        else if (t.type === 'transfer_in') { color = 'var(--sky)'; icon = 'fa-arrow-right-arrow-left'; sign = '+'; }
+        else if (t.type === 'transfer_out') { color = 'var(--muted)'; icon = 'fa-arrow-right-arrow-left'; sign = '-'; }
+        const date = new Date(t.date);
+        const dateStr = date.toLocaleDateString('en-IN', {day:'numeric',month:'short'});
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div style="width:34px;height:34px;border-radius:10px;background:${color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fa-solid ${icon}" style="color:${color};font-size:.85rem;"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:.85rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.description || t.type}</div>
+                <div style="font-size:.7rem;color:var(--muted);">${t.account_name}${t.related_account_name ? ' → '+t.related_account_name : ''} · ${dateStr}</div>
+            </div>
+            <div style="font-weight:700;color:${color};font-size:.9rem;flex-shrink:0;">${sign}₹${t.amount.toFixed(2)}</div>
+        </div>`;
+    }).join('');
+}
+
+function updateAccountSelects(accs) {
+    const txAcc = document.getElementById('txAccount');
+    const tFrom = document.getElementById('transferFrom');
+    const tTo = document.getElementById('transferTo');
+    const opts = accs.map(a => `<option value="${a.id}">${a.name} · ₹${a.balance.toFixed(2)}</option>`).join('');
+    if (txAcc) txAcc.innerHTML = opts;
+    if (tFrom) tFrom.innerHTML = opts;
+    if (tTo) { tTo.innerHTML = `<option value="">— Select vault —</option>` + opts; }
+}
+
+async function fetchMonthlyChart() {
+    try {
+        const resp = await fetch('/api/monthly_summary');
+        if (!resp.ok) throw new Error();
+        const { income, expense, savings } = await resp.json();
+        renderFlowChart(income, expense, savings);
+        const totalsEl = document.getElementById('chart-totals');
+        if (totalsEl) totalsEl.textContent = `30-day window`;
+    } catch { renderFlowChart(0, 0, 0); }
+}
+
+function renderFlowChart(income, expense, savings) {
+    const ctx = document.getElementById('flowChart');
+    if (!ctx) return;
+    if (monthlyChart) { monthlyChart.destroy(); }
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const hasData = income > 0 || expense > 0 || savings > 0;
+    monthlyChart = new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Income', 'Expenses', 'Savings'],
+            datasets: [{
+                data: hasData ? [income, expense, Math.max(0, savings)] : [1,1,1],
+                backgroundColor: hasData
+                    ? ['#1a8a5a','#c0392b','#2d7dd2']
+                    : [isDark ? '#2a2520':'#e6dfd4', isDark ? '#2a2520':'#e6dfd4', isDark ? '#2a2520':'#e6dfd4'],
+                borderColor: isDark ? '#1c1814' : '#faf7f4',
+                borderWidth: 3,
+                hoverBorderWidth: 4,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '72%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: isDark ? '#c5b5a4' : '#5a4f43',
+                        font: { family: 'DM Sans', size: 11, weight: '500' },
+                        padding: 12,
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        borderRadius: 3,
+                        usePointStyle: true,
+                        pointStyleWidth: 8
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ₹${ctx.parsed.toFixed(2)}`
+                    }
+                }
+            }
+        }
+    });
+    window.monthlyChart = monthlyChart;
+}
+
+function quickTransfer(vaultKey) {
+    openSheet('transferModal');
+    // Pre-select vault in "from" dropdown
+    setTimeout(() => {
+        const nameMap = { canara:'Canara Bank', airtel:'Airtel Bank', cash:'Cash', savings:'Savings Hub' };
+        const name = nameMap[vaultKey];
+        const fromSel = document.getElementById('transferFrom');
+        if (fromSel && name) {
+            for (let opt of fromSel.options) {
+                if (opt.text.startsWith(name)) { opt.selected = true; break; }
+            }
+        }
+    }, 100);
+}
+
+// Initial load
+loadDashboard();
+</script>
+{% endblock %}
