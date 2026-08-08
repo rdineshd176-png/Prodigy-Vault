@@ -1,5 +1,3 @@
----
-
 # 🏦 Prodigy Vault
 
 **Prodigy Vault** is a sleek, mobile-first personal finance application designed to help students track cash flow, monitor real-world accounts, and build wealth. It avoids complex budgeting and instead uses a dual-entry ledger system to track money across specific vaults.
