@@ -1,5 +1,3 @@
-Here’s your **clean, copy-pasteable version** (properly formatted for README / GitHub):
-
 ---
 
 # 🏦 Prodigy Vault
